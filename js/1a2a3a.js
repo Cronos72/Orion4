@@ -27,7 +27,7 @@ class Bullet {
 		var boundsA = spriteA.getBounds();
 		var boundsB = spriteB.getBounds();
 		return Phaser.Rectangle.intersects(boundsA, boundsB);
-	
+	 //moosaadad
 	}
 	checkForCollision(){
 		//https://phaser.io/examples/v2/arcade-physics/offset-bounding-box //@todo DOM LOOK HERE, its sexy  
@@ -125,6 +125,8 @@ class Stalker {
 		game.physics.arcade.enable(this.sprite);
 		this.sprite.animations.add('walk', [8, 7, 6, 5, 4, 3, 2, 1], true);
 		this.sprite.inputEnabled = true;
+		this.sprite.events.onInputDown.add(function () { console.log("CLICKED SPRITE")},this);
+		
 
 		this.spriteDeath = game.add.sprite(200, 200, 'stalker-death');
 		this.spriteDeath.scale.setTo(0.4);
@@ -135,13 +137,16 @@ class Stalker {
 		this.sprite.animations.play('walk', this.ANIMATION_SPEED, true);
 		this.sprite.body.velocity.x = this.ENEMY_SPEED; //TODO:  move enemy speed and animation speed into class
 	}
-	die(callback){
+	die(){
 		this.spriteDeath.reset(this.sprite.x, this.sprite.y)
 		this.sprite.kill();
 		this.spriteDeath.animations.play('death', 14, false, true);	
 	
 	}
 
+
+}
+class Level{
 
 }
 function bindHotKeys() {
@@ -474,10 +479,11 @@ play = {
 		// ^ possible parameter for repeat eventPhaser.Timer.SECOND * 1
 
 
-
 		stalker = new Stalker(); //TODO: need to make a better generator function
-	
-		
+		stalker.sprite.events.onInputDown.add(function (enemy,pointer) 
+		{ 
+	    	cannonContainer[activeCanon].bullet.setTarget(enemy);//TODO:enemy doesnt return stalker, only sprite
+		},this);
 		stalker.walk();
        
 		cloud6 = game.add.sprite(0, -150, 'c3');
@@ -523,38 +529,12 @@ play = {
 				cannonContainer[i].bullet.checkForCollision();
 			}
 		}
-		//fires by setting target
-		if (isAPressed && game.input.activePointer.isDown)
-		{
-			cannonContainer[activeCanon].bullet.setTarget(stalker);
-			//check for colision of mouse pointer and stalker
-		}
+	
 		
 		if (cloud1.x >= 800 || cloud1.x <= 0) {
 			//reset clouds
 		}
-    	/* @ new fire logic
-    	cannon.fire(targetUnit){ 
-    		this.bullet.shrink()
-    		playSound()
-    		this.bullet.setTarget(target)
-   		}
-   		*/
-		/*
-		bullet.hit() { //@todo
-			   this.target.destroy() //target hopefully being an enemy object
-			   this.sprite.reset(this.source)
-    
-		}
-	    
-		cannon.isFiring() {
-			if (this.bullet.target != null) {
-						 return true;
-			}else {
-						 return false
-			}
-		}      
-		}*/
+	
 	},
 	render: function()
 	{
