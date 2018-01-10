@@ -1,6 +1,6 @@
 
 class Bullet {
-
+//leGit
 	constructor(source) {
 		//add me to the group??? maybe
 		this.offsetY = -60;
