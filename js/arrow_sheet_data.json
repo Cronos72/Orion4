@@ -1,0 +1,28 @@
+{"frames": {
+
+"arrow.png":
+{
+	"frame": {"x":2,"y":2,"w":61,"h":46},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":10,"y":29,"w":61,"h":46},
+	"sourceSize": {"w":74,"h":92}
+},
+"arrow_shiny.png":
+{
+	"frame": {"x":65,"y":2,"w":61,"h":46},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":10,"y":29,"w":61,"h":46},
+	"sourceSize": {"w":74,"h":92}
+}},
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "arrow_sheet_data.png",
+	"format": "RGBA8888",
+	"size": {"w":128,"h":50},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:2da970ed39cc5a657c70d85539acc052:3e83a0c0cea537d63358d54a2b4b947a:6192dc5a7d7a0a0ea51922fc4423e29e$"
+}
+}
