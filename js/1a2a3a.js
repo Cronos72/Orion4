@@ -1,4 +1,16 @@
 
+class Mouse
+{
+	//http://phaser.io/docs/2.4.2/Phaser.Pointer.html
+	constructor(ga)
+	{
+		this.pointer = game.input.mousePointer;
+
+	}
+    
+
+	
+}
 class Bullet {
 
 	constructor(source) {
@@ -125,13 +137,18 @@ class Stalker {
 		game.physics.arcade.enable(this.sprite);
 		this.sprite.animations.add('walk', [8, 7, 6, 5, 4, 3, 2, 1], true);
 		this.sprite.inputEnabled = true;
-		this.sprite.events.onInputDown.add(function () { console.log("CLICKED SPRITE")},this);
+		//this.sprite.events.onInputDown.add(this.clicked,this);
 		
 
 		this.spriteDeath = game.add.sprite(200, 200, 'stalker-death');
 		this.spriteDeath.scale.setTo(0.4);
 		this.spriteDeath.animations.add('death', [1, 2, 3, 4, 5, 6, 7], false);	
 		this.spriteDeath.kill();
+	}
+	clicked()
+	{
+		cannonContainer[getActiveCanon].bullet.target = this;
+		
 	}
 	walk(){
 		this.sprite.animations.play('walk', this.ANIMATION_SPEED, true);
@@ -169,7 +186,7 @@ NUMBER_OF_BULLETS = 3;
 NUMBER_OF_ENEMIES = 10
 
 
-
+var mouse;
 var s;
 var GAME_WIDTH = 800;
 var GAME_HEIGHT = 500;
@@ -391,6 +408,7 @@ menu = {
 };
 /*____________________________PLAY STATE___________________________*/
 play = {
+	
 	init: function () {
 		console.log("play initialise");
 
@@ -435,7 +453,8 @@ play = {
 	},
 	create: function () 
 	{
-        bindHotKeys(); // binds 1,2,3 and a
+		bindHotKeys(); // binds 1,2,3 and a
+	
 		music = game.add.audio('em', 0.9, true); //TODO: add Music management object
 		music.loop = true;
 		lazerSound = game.add.audio('shot', 0.9, false);
@@ -480,11 +499,18 @@ play = {
 
 
 		stalker = new Stalker(); //TODO: need to make a better generator function
-		stalker.sprite.events.onInputDown.add(function (enemy,pointer) 
+
+		
+		/* stalker.sprite.events.onInputDown.add(function (enemy,pointer) 
 		{ 
-	    	cannonContainer[activeCanon].bullet.setTarget(enemy);//TODO:enemy doesnt return stalker, only sprite
-		},this);
-		stalker.walk();
+			//TODO: ISSUE
+		/* "Enemy" inside this call back function holds the sprite of a stalker(stalker.sprite).Whith out having access
+		to the parent object stalker. Do I need a flag system?
+
+		
+	  //  	cannonContainer[activeCanon].bullet.setTarget(enemy);//TODO:enemy doesnt return stalker, only sprite
+		},this);*/
+		//stalker.walk(); 
        
 		cloud6 = game.add.sprite(0, -150, 'c3');
 		cloud5 = game.add.sprite(800, 0, 'c5');
@@ -529,11 +555,19 @@ play = {
 				cannonContainer[i].bullet.checkForCollision();
 			}
 		}
-	
-		
-		if (cloud1.x >= 800 || cloud1.x <= 0) {
-			//reset clouds
+		if( isAPressed &&  game.input.activePointer.isDown)
+		{
+			//for each stalker //TODO: clean up
+			//isSpriteClicked(cursorX, cursorY, x,y, width, height)
+			if (isSpriteClicked(new Mouse() , stalker ))
+			{
+				cannonContainer[activeCanon].bullet.setTarget(stalker);//TODO: spelling mistake in activeCanon
+			}
 		}
+		
+
+			//TODO:reset clouds
+		
 	
 	},
 	render: function()
@@ -541,7 +575,7 @@ play = {
 		// DEBUG
 		game.debug.body(cannonContainer[0].bullet.sprite);
 		game.debug.spriteInputInfo(stalker.sprite, 32, 32);
-		//game.debug.body(stalker.sprite);
+		game.debug.body(stalker.sprite);
 		
 	}
 };
@@ -575,3 +609,33 @@ function getActiveCanon(activeCanon) {
 		default: console.log("Error- No active canon to return");
 	}
 } 
+function checkOverlap(spriteA, spriteB) {
+
+    var boundsA = spriteA.getBounds();
+    var boundsB = spriteB.getBounds();
+    return Phaser.Rectangle.intersects(boundsA, boundsB);
+
+}
+function name(params) {
+	Math.round(game.input.mousePointer.x),
+	Math.round(game.input.mousePointer.y), 
+	Math.round(stlkr[i].x),
+	Math.round(stlkr[i].y), 
+	stlkr[i].width,
+	stlkr[i].height
+	
+}
+function isSpriteClicked(mouse,enemy)
+{
+	
+	if (
+		mouse.pointer.position.x >= enemy.sprite.body.x 
+		&& mouse.pointer.position.x <= enemy.sprite.body.x + enemy.sprite.body.width 
+		&& mouse.pointer.position.y >= enemy.sprite.body.y 
+		&& mouse.pointer.position.y <= enemy.sprite.body.y + enemy.sprite.body.height
+	   ) 
+    {
+    	return true;
+	}
+    return false;
+}
