@@ -14,13 +14,13 @@ class Mouse
 class Bullet {
 
 	constructor(source) {
-		//add me to the group??? maybe
+		
 		this.offsetY = -60;
-		this.offsetX = +20;
+		this.offsetX = +25;
 		this.sourceCannon = source;
 		console.log("SOURCE CANNON:"+ this.sourceCannon);
 		this.sprite = game.add.sprite(this.sourceCannon.baseSprite.x + this.offsetX, this.sourceCannon.baseSprite.y + this.offsetY, 'bullet');
-		this.homeLocation =  new Phaser.Point(this.sprite.x, this.sprite.y);
+		this.homeLocation =  new Phaser.Point(this.sprite.x + (100 * this.sourceCannon.id), this.sprite.y);
 		this.sprite.scale.setTo(0.5);
 		this.target = null;
 		this.sprite.checkWorldBounds = true;
@@ -41,28 +41,22 @@ class Bullet {
 		return Phaser.Rectangle.intersects(boundsA, boundsB);
 	 //moosaadad
 	}
-	checkForCollision(){
+	checkForCollision()
+	{
 		//https://phaser.io/examples/v2/arcade-physics/offset-bounding-box //@todo DOM LOOK HERE, its sexy  
 		game.physics.arcade.overlap(this.sprite, this.target.sprite, this.onImpact, null, this);
 	}
 	onImpact()
 	{
-		console.log("OVERLAP")
 		this.sprite.reset(this.homeLocation.x, this.homeLocation.y);
 		this.sprite.scale.setTo(0.5);
-		this.target.die();
+
+		this.target.die(); 
 		this.target = null;
-		suction.play(); //TODO: no more globals
+		suction.play(); 
 		espark.play();
-		//TODO: Move to bullet class
-		/*
-		bullet.sprite.kill();
-		suction.play();
-		espark.play();
-		//espark.play();
+	
 		IncrementScore(1);
-	}*/
-		
 	}
 
 	setSourceCannon(cannon) //@todo move to constructor
@@ -88,16 +82,17 @@ class Bullet {
 	}
 }
 class Cannon {
-	constructor() {
+	constructor(id) {
+		this.id = id;
 		this.baseSprite = game.add.sprite(280, 450, 'cannon-base');
 		this.baseSprite.scale.setTo(0.7);
 		this.firing = false;
 		this.centerPointX = (this.baseSprite.width / 2) + this.baseSprite.x;
 		this.centerPointY = (this.baseSprite.height / 2) + this.baseSprite.y;
-
 		this.bullet = new Bullet(this);
-		
-		
+
+		this.baseSprite.x += 100 * this.id;
+		this.bullet.sprite.x += 100 * this.id;	
 	}
 	isFiring()
 	{
@@ -107,12 +102,7 @@ class Cannon {
 		this.centerPointX = (this.baseSprite.width / 2) + this.baseSprite.x;
 		this.centerPointY = (this.baseSprite.height / 2) + this.baseSprite.y;
 	}
-	setCannonOffset(cannonNumber) {
-		//TODO: consider moving to constuctor
-		this.baseSprite.x += 100 * cannonNumber;
-		this.bullet.sprite.x += 100 * cannonNumber;
-		this.setCenterPoint();
-	}
+	
 	setTarget(target) {
 		this.target = target;
 	}
@@ -128,179 +118,171 @@ function IncrementScore(increment) {
 }
 
 class Stalker {
-	constructor() 
+	constructor(lane,index) 
 	{
-		this.ENEMY_SPEED = -14; // pixel displacement per iteration of gameloop
-		this.ANIMATION_SPEED = 3; //in fps
-		//this.id = id;
-		this.sprite = game.add.sprite(200,100, 'stalker'); //Todo: retrieve x and y from spawn function 
+		if(lane  === undefined)
+		{
+			lane = 100;
+		}
+		if(index  === undefined)
+		{
+			index = 0;
+		}
+		this.id = index;
+		this.ENEMY_SPEED = -104; // pixel displacement per iteration of gameloop
+		this.ANIMATION_SPEED = 28; //in fps
+		this.sprite = game.add.sprite(800,lane, 'stalker'); 
 		game.physics.arcade.enable(this.sprite);
 		this.sprite.animations.add('walk', [8, 7, 6, 5, 4, 3, 2, 1], true);
 		this.sprite.inputEnabled = true;
-		//this.sprite.events.onInputDown.add(this.clicked,this);
-		
-
 		this.spriteDeath = game.add.sprite(200, 200, 'stalker-death');
 		this.spriteDeath.scale.setTo(0.4);
-		this.spriteDeath.animations.add('death', [1, 2, 3, 4, 5, 6, 7], false);	
 		this.spriteDeath.kill();
+		this.death = this.spriteDeath.animations.add('death', [1, 2, 3, 4, 5, 6, 7], false);	
+	    this.death.onComplete.add(this.destroyDeathAnimation, this);
 	}
-	clicked()
-	{
-		cannonContainer[getActiveCanon].bullet.target = this;
-		
-	}
+
 	walk(){
 		this.sprite.animations.play('walk', this.ANIMATION_SPEED, true);
-		this.sprite.body.velocity.x = this.ENEMY_SPEED; //TODO:  move enemy speed and animation speed into class
+		this.sprite.body.velocity.x = this.ENEMY_SPEED; 
 	}
 	die(){
-		this.spriteDeath.reset(this.sprite.x, this.sprite.y)
 		this.sprite.kill();
+	    this.spriteDeath.reset(this.sprite.x, this.sprite.y)
+		
+		
 		this.spriteDeath.animations.play('death', 14, false, true);	
+		
 	
+	}
+	destroyDeathAnimation()
+	{
+		this.spriteDeath.kill();
+		this.spriteDeath.x =-64;
+		this.spriteDeath.y =-64;
+		
 	}
 
 
 }
-class Level{
+class Level
+{
+	constructor()
+	{
+		this.levelNumber = 1;
+		
+		//this.scoreText; maybe seperate sincve displayiong text is part of render
+		this.scoreTracker;
 
+		this.spawnTracker = 0;
+		this.enemyCount  = 999;
+		this.enemySpeed  = -14;
+		this.animationSpeed = 28; 
+		this.enemies = new Array(this.enemyCount);
+		
+		
+		this.spawnRate = 500;
+		
+		this.lane = 0; //holds a lane number 0-9
+		this.startLane = 3;
+		this.endLane = 5;
+		this.laneCount   = 3;
+
+		this.oldSpawn; //saves the lane number a unit was previously spawned in
+		this.newSpawn;
+
+		this.laneYCord = new Array(10);
+
+		/*Y cordinates for lanes : The screen can be divided into 9 lanes which are 50 pixels in height. Units will spawn in a specified range*/
+		this.laneYCord[0] = 50;
+		this.laneYCord[1] = 100;
+		this.laneYCord[2] = 150; //start spawning range
+		this.laneYCord[3] = 200;
+		this.laneYCord[4] = 250;
+		this.laneYCord[5] = 300;//end spaewning range
+		this.laneYCord[6] = 350;
+		this.laneYCord[7] = 400;
+		this.laneYCord[8] = 450;
+		this.laneYCord[9] = 500;
+
+
+	}
+	start()
+	{
+		//delay, repeatCount, callback, callbackContext, arguments
+		game.time.events.repeat(500, this.enemyCount, this.spawnEnemy, this);
+	}
+	getRandomLaneNumber()
+	{
+		return Math.floor(Math.random() * (this.endLane - this.startLane + 1) + this.startLane);
+	}
+	spawnEnemy()
+	{
+		this.lane = this.getRandomLaneNumber();
+		
+		this.enemies[this.spawnTracker]= new Stalker(this.laneYCord[this.lane],lvl.spawnTracker);
+		this.enemies[this.spawnTracker].walk();
+		this.spawnTracker++;
+		
+	}
+	checkSpawnOverlap(newSpawn, oldSpawn) {
+		// This function ensures new spawned stalkers are not overlapping
+		tmp = newSpawn - oldSpawn;
+		if (Math.abs(tmp) > 64) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 }
 function bindHotKeys() {
 	keyOne = game.input.keyboard.addKey(Phaser.Keyboard.ONE);
-	keyOne.onDown.add(function () { activeCanon = 0 }, this);
+	keyOne.onDown.add(function () { activeCannon = 0 }, this);
 
 	keyTwo = game.input.keyboard.addKey(Phaser.Keyboard.TWO);
-	keyTwo.onDown.add(function () { activeCanon = 1 }, this);
+	keyTwo.onDown.add(function () { activeCannon = 1 }, this);
 
 	keyThree = game.input.keyboard.addKey(Phaser.Keyboard.THREE);
-	keyThree.onDown.add(function () { activeCanon = 2 }, this);
+	keyThree.onDown.add(function () { activeCannon = 2 }, this);
 
 	attackModeKey = game.input.keyboard.addKey(Phaser.Keyboard.A);
 	attackModeKey.onDown.add(function () { isAPressed = true; }, this);
 }
-// Define constants
-SHOT_DELAY = 100; // milliseconds (10 bullets/second)
-BULLET_SPEED = 10; // pixels/second
-NUMBER_OF_BULLETS = 3;
-NUMBER_OF_ENEMIES = 10
+var game;
+const GAME_WIDTH = 800;
+const GAME_HEIGHT = 500;
 
-
-var mouse;
-var s;
-var GAME_WIDTH = 800;
-var GAME_HEIGHT = 500;
-var SOUND_ON = true; // Global SoudControl
-var SOUND_OFF = false;
+const SOUND_ON = true; // Global SoudControl
+const SOUND_OFF = false;
 var sound = SOUND_OFF;
-var SCALE = 0.5;
-
-
-
-var game;  //Game container
-var menu; //Menu state container
-var menuStateBackground;
-var cloud1, cloud2, cloud3, cloud4;
-
 var music;
 var clickSound;
 var musicPlaying = true;
 
+var mouse;
+
+//Game container
+var menu; //Menu state container
+var menuStateBackground;
+var cloud1, cloud2, cloud3, cloud4;
 
 var playButton;
 var selectArrow;
 var menuButtons = new Array();
 
-
-var stlkr = new Array();
-var enemies;
-var c = 0;   //External counter variable for spawn stalker event. to create loop like effect
-var lastEnemySpawn = 100;
-var spawnRate = 500; //in milli secs
-var laneYCord = new Array(9);
-startLane = 3; // spawning lane 
-endLane = 5;
-
 var keyOne;
 var keyTwo;
 var keyThree;
-
-var cursor;
 
 var attackModeKey;
 var isAPressed = false;
 
 var cannonContainer;
-var activeCanon = 1;
+var activeCannon = 1;
 
 var ScoreText;
 var scoreTracker = 0;
-function getVectorMagnitude(x, y) {
-	var m = Math.ceil(Math.sqrt(x * x + y * y));
-	return m;
-}
-function getUnitVector(p1x, p1y, p2x, p2y) { //this.source.x,this.target.x, this.source.y,this.target.y
-	var x = p2x - p1x;
-	var y = p2y - p1y;
-
-	var m = Math.ceil(Math.sqrt(x * x + y * y));
-	var ux = (x / m) * BULLET_SPEED;
-	var uy = (y / m) * BULLET_SPEED;
-	//console.log("Var X: "+ x+ " Var y: "+ y+ " Magintude: "+m +" UX: "+ux+" UY: "+uy);
-	return new Phaser.Point(ux,uy);
-}
-function checkOverlap(spriteA, spriteB) {
-
-	var boundsA = spriteA.getBounds();
-	var boundsB = spriteB.getBounds();
-	return Phaser.Rectangle.intersects(boundsA, boundsB);
-
-}
-
-/*Y cordinates for lanes : The screen can be divided into 9 lanes which are 50 pixels in height. Units will spawn in a specified range*/
-laneYCord[0] = 50;
-laneYCord[1] = 100;
-laneYCord[2] = 150; //start spawning range
-laneYCord[3] = 200;
-laneYCord[4] = 250;
-laneYCord[5] = 300;//end spaewning range
-laneYCord[6] = 350;
-laneYCord[7] = 400;
-laneYCord[8] = 450;
-laneYCord[9] = 500;
-
-
-// This function ensures new spawned stalkers are not overlapping
-function checkSpawn(newSpawn, oldSpawn) {
-	tmp = newSpawn - oldSpawn;
-	if (Math.abs(tmp) > 60) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-//returns a random lane to spawn a iunit in
-function getLane(min, max) {
-	return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-// Spawns a stalker (basicx enemy unit)
-function spawnStalker3() {
-	lane = getLane(startLane, endLane);//generates a random lane number
-	//lastEnemySpawn =laneYCord[lane];
-	stlkr[c] = enemies.create(800, laneYCord[lane], 'stalker');
-	
-	
-	
-	stlkr[c].animations.play('walk', ANIMATION_SPEED, true);
-
-	//new stalker(lane)
-
-	stlkr[c].inputEnabled = true;
-
-	c += 1;
-}
 
 function Button(id, img, toogle, w, h, xcord, ycord, action) {
 	this.identifier = id;
@@ -339,7 +321,7 @@ menuButtons.push(hs);
 
 function init() {
 	console.log("Initializing...");
-	game = new Phaser.Game(GAME_WIDTH, GAME_HEIGHT, Phaser.CANVAS, "1a2a3a"); //TODO: reset to auto
+	game = new Phaser.Game(GAME_WIDTH, GAME_HEIGHT, Phaser.AUTO, "1a2a3a"); 
 	game.state.add('menu', menu);
 	game.state.add('play', play);
 	game.state.start('menu');
@@ -435,17 +417,10 @@ play = {
 		game.load.image("c5", "assets/images/cloud5.png");
 		game.load.image("island", "assets/images/background-island.png");
 
-
-
-
-
 		game.load.image("ui", "assets/images/ui_800x500.png");
 		//load.spritesheet params are: x, y, total ammount of sprites on sheet
 		game.load.spritesheet("stalker", "assets/images/animation/stalker/stalkerl.png", 64, 64, 8);
-
 		game.load.spritesheet("stalker-death", "assets/images/animation/stalker/stalker_death.png", 145, 145, 7);
-
-
 
 		game.load.image("cannon-base", "assets/images/cannon-base.png");
 		game.load.image("bullet", "assets/images/orb.png");
@@ -454,7 +429,8 @@ play = {
 	create: function () 
 	{
 		bindHotKeys(); // binds 1,2,3 and a
-	
+		
+		
 		music = game.add.audio('em', 0.9, true); //TODO: add Music management object
 		music.loop = true;
 		lazerSound = game.add.audio('shot', 0.9, false);
@@ -490,27 +466,11 @@ play = {
 		cannonContainer = new Array(3);
 		for (i = 0; i < cannonContainer.length; i++) 
 		{
-			cannonContainer[i] = new Cannon();
-			cannonContainer[i].setCannonOffset(i); //moves cannon to the right b i* 100px
+			cannonContainer[i] = new Cannon(i);
 		}
-		//TODO:make enemy class and spawn function
-		//game.time.events.repeat(spawnRate, NUMBER_OF_ENEMIES, spawnStalker3, this); //Phaser.Timer.SECOND * 1
-		// ^ possible parameter for repeat eventPhaser.Timer.SECOND * 1
 
-
-		stalker = new Stalker(); //TODO: need to make a better generator function
-
-		
-		/* stalker.sprite.events.onInputDown.add(function (enemy,pointer) 
-		{ 
-			//TODO: ISSUE
-		/* "Enemy" inside this call back function holds the sprite of a stalker(stalker.sprite).Whith out having access
-		to the parent object stalker. Do I need a flag system?
-
-		
-	  //  	cannonContainer[activeCanon].bullet.setTarget(enemy);//TODO:enemy doesnt return stalker, only sprite
-		},this);*/
-		//stalker.walk(); 
+		lvl = new Level();
+		lvl.start();
        
 		cloud6 = game.add.sprite(0, -150, 'c3');
 		cloud5 = game.add.sprite(800, 0, 'c5');
@@ -518,8 +478,9 @@ play = {
 		cloud5.body.velocity.x = -100;
 		cloud6.body.velocity.x = -20;
 		// UI ELEMENTS
-		//Make class for rendering text
+		//TODO:Make class for rendering text
 		game.add.sprite(0, 0, 'ui');
+		
 		//scoreboard
 		text = game.add.text(665, 400, "Score");
 		text.anchor.setTo(0.5);
@@ -542,13 +503,11 @@ play = {
 
 	},
 	update: function () 
-	{
-		//cannonContainer[0].bullet.setTarget(stalker);
-		
+	{	
 		for (i = 0; i < cannonContainer.length; i++ )
 		{
 
-			if (cannonContainer[i].bullet.target != null) //Todo: make into cannon firing function
+			if (cannonContainer[i].bullet.target != null && cannonContainer[i].bullet.target.sprite.alive )
 		    {
 				cannonContainer[i].bullet.shrink()
 				cannonContainer[i].bullet.move();
@@ -557,25 +516,30 @@ play = {
 		}
 		if( isAPressed &&  game.input.activePointer.isDown)
 		{
-			//for each stalker //TODO: clean up
+			//for each stalker //TODO: check level.enemies for collision
 			//isSpriteClicked(cursorX, cursorY, x,y, width, height)
-			if (isSpriteClicked(new Mouse() , stalker ))
+			
+			for (i = 0; i <= lvl.enemies.length; i++) //iterate through
 			{
-				cannonContainer[activeCanon].bullet.setTarget(stalker);//TODO: spelling mistake in activeCanon
+				if(lvl.enemies[i] != undefined )
+				{
+					if ( isSpriteClicked(new Mouse() , lvl.enemies[i] ) )
+					{
+						cannonContainer[activeCannon].bullet.setTarget(lvl.enemies[i]);
+
+					}
+				}
+				
 			}
 		}
-		
-
 			//TODO:reset clouds
-		
-	
 	},
 	render: function()
 	{
 		// DEBUG
 		game.debug.body(cannonContainer[0].bullet.sprite);
-		game.debug.spriteInputInfo(stalker.sprite, 32, 32);
-		game.debug.body(stalker.sprite);
+		//game.debug.spriteInputInfo(stalker.sprite, 32, 32);
+		//game.debug.body(stalker.sprite);
 		
 	}
 };
@@ -601,8 +565,8 @@ function swapState(newState) {
 	console.log("swaping state...");
 	game.state.start('play');
 }
-function getActiveCanon(activeCanon) {
-	switch (activeCanon) {
+function getactiveCannon(activeCannon) {
+	switch (activeCannon) {
 		case 1: return cannonContainer[0]; break;
 		case 2: return cannonContainer[1]; break;
 		case 3: return cannonContainer[2]; break;
