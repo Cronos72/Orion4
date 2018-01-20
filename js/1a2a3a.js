@@ -1,8 +1,7 @@
-
 class Mouse
 {
 	//http://phaser.io/docs/2.4.2/Phaser.Pointer.html
-	constructor(ga)
+	constructor()
 	{
 		this.pointer = game.input.mousePointer;
 
@@ -26,6 +25,10 @@ class Bullet {
 		this.sprite.checkWorldBounds = true;
 		this.sprite.outOfBoundsKill = true;
 		game.physics.arcade.enable(this.sprite, Phaser.Physics.ARCADE);
+		this.sparkSound = game.add.audio('espark', 0.9, false);
+		this.sparkSound.allowMultiple = true;
+		this.bulletResetSound = game.add.audio('suction', 0.9, false);
+
 	}
 	shrink()
 	{
@@ -48,13 +51,17 @@ class Bullet {
 	}
 	onImpact()
 	{
+		
 		this.sprite.reset(this.homeLocation.x, this.homeLocation.y);
+		this.bulletResetSound.play();
 		this.sprite.scale.setTo(0.5);
 
 		this.target.die(); 
 		this.target = null;
-		suction.play(); 
-		espark.play();
+
+		this.sparkSound.play();
+		
+		
 	
 		IncrementScore(1);
 	}
@@ -92,7 +99,9 @@ class Cannon {
 		this.bullet = new Bullet(this);
 
 		this.baseSprite.x += 100 * this.id;
-		this.bullet.sprite.x += 100 * this.id;	
+		this.bullet.sprite.x += 100 * this.id;
+		
+		
 	}
 	isFiring()
 	{
@@ -255,7 +264,7 @@ const GAME_HEIGHT = 500;
 
 const SOUND_ON = true; // Global SoudControl
 const SOUND_OFF = false;
-var sound = SOUND_OFF;
+var sound = SOUND_ON;
 var music;
 var clickSound;
 var musicPlaying = true;
@@ -334,11 +343,8 @@ function init() {
 
 menu = {
 	init: function () {
-		//Called as soon as we enter this state
-		//Should be checking if all files are present
 		console.log("menu initialised");
 	},
-
 	preload: function () {
 
 		//Loop that generates the splash screen menu list items (Play, highscore,etc...)
@@ -429,15 +435,9 @@ play = {
 	create: function () 
 	{
 		bindHotKeys(); // binds 1,2,3 and a
-		
-		
+	
 		music = game.add.audio('em', 0.9, true); //TODO: add Music management object
 		music.loop = true;
-		lazerSound = game.add.audio('shot', 0.9, false);
-		suction = game.add.audio('suction', 0.9, false);
-		espark = game.add.audio('espark', 0.9, false);
-
-		lazerSound.allowMultiple = true;
 
 
 		if (SOUND_OFF) {
@@ -537,7 +537,7 @@ play = {
 	render: function()
 	{
 		// DEBUG
-		game.debug.body(cannonContainer[0].bullet.sprite);
+		game.debug.body(cannonContainer[activeCannon].bullet.sprite);
 		//game.debug.spriteInputInfo(stalker.sprite, 32, 32);
 		//game.debug.body(stalker.sprite);
 		
