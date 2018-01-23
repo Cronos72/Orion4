@@ -25,9 +25,9 @@ class Bullet {
 		this.sprite.checkWorldBounds = true;
 		this.sprite.outOfBoundsKill = true;
 		game.physics.arcade.enable(this.sprite, Phaser.Physics.ARCADE);
-		this.sparkSound = game.add.audio('espark', 0.9, false);
-		this.sparkSound.allowMultiple = true;
-		this.bulletResetSound = game.add.audio('suction', 0.9, false);
+		//this.sparkSound = game.add.audio('espark', 0.9, false);
+		//this.sparkSound.allowMultiple = true;
+		//this.bulletResetSound = game.add.audio('suction', 0.9, false);
 
 	}
 	shrink()
@@ -53,14 +53,14 @@ class Bullet {
 	{
 		
 		this.sprite.reset(this.homeLocation.x, this.homeLocation.y);
-		this.bulletResetSound.play();
+		//this.bulletResetSound.play();
 		this.sprite.scale.setTo(0.5);
 
 		this.target.die(); 
 		this.target = null;
 
-		this.sparkSound.play();
-		
+		//this.sparkSound.play();
+		sparkSound.play();
 		
 	
 		IncrementScore(1);
@@ -268,7 +268,8 @@ var sound = SOUND_ON;
 var music;
 var clickSound;
 var musicPlaying = true;
-
+var sparkSound;
+		
 var mouse;
 
 //Game container
@@ -330,7 +331,7 @@ menuButtons.push(hs);
 
 function init() {
 	console.log("Initializing...");
-	game = new Phaser.Game(GAME_WIDTH, GAME_HEIGHT, Phaser.AUTO, "1a2a3a"); 
+	game = new Phaser.Game(GAME_WIDTH, GAME_HEIGHT, Phaser.CANVAS, "1a2a3a"); //TODO: set AUTO
 	game.state.add('menu', menu);
 	game.state.add('play', play);
 	game.state.start('menu');
@@ -374,6 +375,7 @@ menu = {
 		clickSound = game.add.audio('menuClick', 0.9, false);
 		music = game.add.audio('menuMusic', 0.9, true);
 		music.loop = true;
+		
 
 		//Toogle by setting SOUND_ON to false at the top of this file
 		if (SOUND_OFF) {
@@ -438,6 +440,9 @@ play = {
 	
 		music = game.add.audio('em', 0.9, true); //TODO: add Music management object
 		music.loop = true;
+		
+		sparkSound = game.add.audio('espark', 0.9, false);
+		sparkSound.allowMultiple = true;
 
 
 		if (SOUND_OFF) {
@@ -515,10 +520,7 @@ play = {
 			}
 		}
 		if( isAPressed &&  game.input.activePointer.isDown)
-		{
-			//for each stalker //TODO: check level.enemies for collision
-			//isSpriteClicked(cursorX, cursorY, x,y, width, height)
-			
+		{	
 			for (i = 0; i <= lvl.enemies.length; i++) //iterate through
 			{
 				if(lvl.enemies[i] != undefined )
@@ -526,7 +528,7 @@ play = {
 					if ( isSpriteClicked(new Mouse() , lvl.enemies[i] ) )
 					{
 						cannonContainer[activeCannon].bullet.setTarget(lvl.enemies[i]);
-
+						isAPressed = false;
 					}
 				}
 				
@@ -538,6 +540,7 @@ play = {
 	{
 		// DEBUG
 		game.debug.body(cannonContainer[activeCannon].bullet.sprite);
+		//game.add.sprite(0, 0, 'ui');
 		//game.debug.spriteInputInfo(stalker.sprite, 32, 32);
 		//game.debug.body(stalker.sprite);
 		
