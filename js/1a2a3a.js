@@ -3,17 +3,12 @@ class Mouse
 	//http://phaser.io/docs/2.4.2/Phaser.Pointer.html
 	constructor()
 	{
-		this.pointer = game.input.mousePointer;
-
-	}
-    
-
-	
+		this.pointer = game.input.mousePointer; 
+	}	
 }
 class Bullet {
 
 	constructor(source) {
-		
 		this.offsetY = -60;
 		this.offsetX = +25;
 		this.sourceCannon = source;
@@ -133,6 +128,7 @@ class Stalker {
 		{
 			lane = 100;
 		}
+
 		if(index  === undefined)
 		{
 			index = 0;
@@ -140,7 +136,10 @@ class Stalker {
 		this.id = index;
 		this.ENEMY_SPEED = -104; // pixel displacement per iteration of gameloop
 		this.ANIMATION_SPEED = 28; //in fps
-		this.sprite = game.add.sprite(800,lane, 'stalker'); 
+		//this.sprite = game.add.sprite(800,lane, 'stalker'); 
+		//enemyLayer.add(this.sprite); 
+		this.sprite = enemyLayer.create(800,lane, 'stalker');
+		//console.log(this.spriteDeath.z);
 		game.physics.arcade.enable(this.sprite);
 		this.sprite.animations.add('walk', [8, 7, 6, 5, 4, 3, 2, 1], true);
 		this.sprite.inputEnabled = true;
@@ -270,8 +269,11 @@ var clickSound;
 var musicPlaying = true;
 var sparkSound;
 		
+var soundButton;
 var mouse;
 
+var ui;
+var uiLayer;
 //Game container
 var menu; //Menu state container
 var menuStateBackground;
@@ -290,7 +292,7 @@ var isAPressed = false;
 
 var cannonContainer;
 var activeCannon = 1;
-
+var enemyLayer;
 var ScoreText;
 var scoreTracker = 0;
 
@@ -378,7 +380,7 @@ menu = {
 		
 
 		//Toogle by setting SOUND_ON to false at the top of this file
-		if (SOUND_OFF) {
+		if (SOUND_ON) {
 			music.play();
 		}
 
@@ -433,6 +435,10 @@ play = {
 		game.load.image("cannon-base", "assets/images/cannon-base.png");
 		game.load.image("bullet", "assets/images/orb.png");
 		game.load.image("usc", "assets/images/unit_selection_circle.png");
+
+		game.load.image("toggleSoundInactive", "assets/images/sound-inactive.png");
+	
+		game.load.spritesheet('toggleSound','assets/images/sound_icon.png',64,64,2);
 	},
 	create: function () 
 	{
@@ -441,14 +447,16 @@ play = {
 		music = game.add.audio('em', 0.9, true); //TODO: add Music management object
 		music.loop = true;
 		
+		
 		sparkSound = game.add.audio('espark', 0.9, false);
 		sparkSound.allowMultiple = true;
 
 
-		if (SOUND_OFF) {
+		if (SOUND_ON) {
 			music.play();
 		}
 
+	   
 		game.add.sprite(0, 0, 'bg');
 		cloud1 = game.add.sprite(0, 0, 'c1');
 		cloud2 = game.add.sprite(0, 0, 'c2');
@@ -473,7 +481,7 @@ play = {
 		{
 			cannonContainer[i] = new Cannon(i);
 		}
-
+        enemyLayer = game.add.group();       
 		lvl = new Level();
 		lvl.start();
        
@@ -484,7 +492,9 @@ play = {
 		cloud6.body.velocity.x = -20;
 		// UI ELEMENTS
 		//TODO:Make class for rendering text
-		game.add.sprite(0, 0, 'ui');
+	
+		uiLayer = game.add.group();
+		uiLayer.create(0, 0, 'ui');
 		
 		//scoreboard
 		text = game.add.text(665, 400, "Score");
@@ -492,7 +502,8 @@ play = {
 		text.font = 'Upheaval';
 		text.fontSize = 34;
 		text.stroke = '#000000'; //aquamarine
-		text.fill = '#40E0D0'; //turquise
+		//text.fill = '#40E0D0'; //turquise
+		text.fill = '#c83f5f'; //red
 		text.strokeThickness = 2;
 		text.setShadow(5, 5, 'rgba(0,0,0,0.5)', 5);
 		// set score tracker to 0
@@ -501,9 +512,35 @@ play = {
 		scoreText.font = 'Upheaval';
 		scoreText.fontSize = 24;
 		//score.stroke = '#FFFFFF'; //aquamarine
-		scoreText.fill = '#40E0D0'; //turquise
+		scoreText.fill = '#c83f5f'; //turquise
 		scoreText.strokeThickness = 2;
 		scoreText.setShadow(5, 5, 'rgba(0,0,0,0.5)', 5);
+
+		soundButton = game.add.button(760,15, 'toggleSound', function(){console.log("Sound clicked")}, this, 0, 0, 0);
+		soundButton.scale.setTo(0.5);
+		soundButton.animations.add('soundOn',[1,0],10);
+		soundButton.animations.add('soundOff',[0,1],10);
+
+		soundButton.onInputOver.add(function(){console.log("Sound Over")}, this);
+		soundButton.onInputOut.add(function(){console.log("Sound Out")}, this);
+		soundButton.onInputUp.add(function(){
+			console.log("Sound Up")
+			//soundButton.animations.play('toggle', 10, false);
+			//soundButton.loadTexture('toggleSoundInactive');
+			if(sound)
+			{
+				soundButton.animations.play('soundOff');
+				sound = SOUND_OFF;
+			}
+			else
+			{
+				soundButton.animations.play('soundOn');
+				sound = SOUND_ON;
+			}
+		
+		
+		toogleMusic();
+		}, this);
 
 
 	},
@@ -534,6 +571,7 @@ play = {
 				
 			}
 		}
+	
 			//TODO:reset clouds
 	},
 	render: function()
