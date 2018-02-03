@@ -1,3 +1,4 @@
+//TODO: Make variable targetable in stalker class in order to prevent cannons from shooting at th same target
 class Mouse
 {
 	//http://phaser.io/docs/2.4.2/Phaser.Pointer.html
@@ -29,8 +30,24 @@ class Bullet {
 	{
 		this.sprite.scale.setTo(0.3,0.3);
 	}
+    hasNoTarget() 
+	{
+		console.log(this.target);
+		if(this.target)
+		{
+			
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	//TODO: if (this._target == null or this._target.sprite.alive == false) { 
+	//marlon: some variation of this so that a target cant be reset in bullet flight
 	setTarget(targetEnemy) 
 	{
+		
 		this.target = targetEnemy;
 	}
 	checkHit(spriteA, spriteB) {
@@ -136,6 +153,7 @@ class Stalker {
 		this.id = index;
 		this.ENEMY_SPEED = -104; // pixel displacement per iteration of gameloop
 		this.ANIMATION_SPEED = 28; //in fps
+		this.targetable = true;
 		//this.sprite = game.add.sprite(800,lane, 'stalker'); 
 		//enemyLayer.add(this.sprite); 
 		this.sprite = enemyLayer.create(800,lane, 'stalker');
@@ -149,7 +167,14 @@ class Stalker {
 		this.death = this.spriteDeath.animations.add('death', [1, 2, 3, 4, 5, 6, 7], false);	
 	    this.death.onComplete.add(this.destroyDeathAnimation, this);
 	}
-
+	setTargetable(targetable)
+	{
+		this.targetable = targetable;
+	}
+	isTargetable()
+	{
+		return this.targetable;
+	}
 	walk(){
 		this.sprite.animations.play('walk', this.ANIMATION_SPEED, true);
 		this.sprite.body.velocity.x = this.ENEMY_SPEED; 
@@ -499,11 +524,13 @@ play = {
 		//scoreboard
 		text = game.add.text(665, 400, "Score");
 		text.anchor.setTo(0.5);
+		//text.font = 'Zelda';
 		text.font = 'Upheaval';
 		text.fontSize = 34;
 		text.stroke = '#000000'; //aquamarine
-		//text.fill = '#40E0D0'; //turquise
-		text.fill = '#c83f5f'; //red
+		text.fill = '#40E0D0'; //turquise
+		text.alpha = 0.6;
+		//text.fill = '#c83f5f'; //red
 		text.strokeThickness = 2;
 		text.setShadow(5, 5, 'rgba(0,0,0,0.5)', 5);
 		// set score tracker to 0
@@ -512,7 +539,9 @@ play = {
 		scoreText.font = 'Upheaval';
 		scoreText.fontSize = 24;
 		//score.stroke = '#FFFFFF'; //aquamarine
-		scoreText.fill = '#c83f5f'; //turquise
+		//scoreText.fill = '#c83f5f'; //red
+		scoreText.fill = '#40E0D0'; 
+		scoreText.alpha = 0.6;
 		scoreText.strokeThickness = 2;
 		scoreText.setShadow(5, 5, 'rgba(0,0,0,0.5)', 5);
 
@@ -556,15 +585,16 @@ play = {
 				cannonContainer[i].bullet.checkForCollision();
 			}
 		}
-		if( isAPressed &&  game.input.activePointer.isDown)
+		if( isAPressed &&  game.input.activePointer.isDown && cannonContainer[activeCannon].bullet.hasNoTarget())
 		{	
 			for (i = 0; i <= lvl.enemies.length; i++) //iterate through
 			{
-				if(lvl.enemies[i] != undefined )
+				if(lvl.enemies[i] != undefined )//defiend enemies
 				{
-					if ( isSpriteClicked(new Mouse() , lvl.enemies[i] ) )
+					if (  lvl.enemies[i].isTargetable() && isSpriteClicked(new Mouse() , lvl.enemies[i] ) )
 					{
 						cannonContainer[activeCannon].bullet.setTarget(lvl.enemies[i]);
+						lvl.enemies[i].setTargetable(false);
 						isAPressed = false;
 					}
 				}
