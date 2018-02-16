@@ -1,4 +1,4 @@
-//TODO: Make variable targetable in stalker class in order to prevent cannons from shooting at th same target
+
 class Mouse
 {
 	//http://phaser.io/docs/2.4.2/Phaser.Pointer.html
@@ -32,7 +32,7 @@ class Bullet {
 	}
     hasNoTarget() 
 	{
-		console.log(this.target);
+		
 		if(this.target)
 		{
 			
@@ -43,8 +43,7 @@ class Bullet {
 			return true;
 		}
 	}
-	//TODO: if (this._target == null or this._target.sprite.alive == false) { 
-	//marlon: some variation of this so that a target cant be reset in bullet flight
+	
 	setTarget(targetEnemy) 
 	{
 		
@@ -90,8 +89,8 @@ class Bullet {
 		var ux = this.target.sprite.x - this.sprite.x ;
 		var uy = this.target.sprite.y - this.sprite.y ;
 		var vectorMagnintude = Math.sqrt(ux*ux + uy*uy);
-		var unitVectorX = (ux / vectorMagnintude)*10 ;
-		var unitVectorY = (uy / vectorMagnintude)*10 ;
+		var unitVectorX = (ux / vectorMagnintude)*10 ;//TODO: have speed control as attribute of level
+		var unitVectorY = (uy / vectorMagnintude)*10 ; 
 	
 		//this.sprite.body.x += Math.floor(u.x);
 		//this.sprite.body.y += Math.floor(u.y);
@@ -109,11 +108,51 @@ class Cannon {
 		this.centerPointX = (this.baseSprite.width / 2) + this.baseSprite.x;
 		this.centerPointY = (this.baseSprite.height / 2) + this.baseSprite.y;
 		this.bullet = new Bullet(this);
-
+        this.range = 350;
 		this.baseSprite.x += 100 * this.id;
 		this.bullet.sprite.x += 100 * this.id;
+		this.lastTimeFired =0;
+		this.firedAt = 0; //TODO: game time
+		this.shotDelay = 0.89;// seconds
 		
 		
+	}
+	setFiredTimeStamp()
+	{
+		this.lastTimeFired = game.time.time;
+	}
+
+	ableToFire()
+	{
+		var d = (Math.floor(game.time.time - this.lastTimeFired ) / 1000 );
+		console.log("delay :"+ d);
+		if( d >=this.shotDelay)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+
+	}
+
+	targetInRange(target)
+	{
+		//http://www.dummies.com/education/science/physics/how-to-find-a-vectors-magnitude-and-direction/
+		var vectorx = Math.pow( this.centerPointX - target.sprite.body.x , 2) ;
+		var vectory = Math.pow( this.centerPointY = target.sprite.body.y , 2) ;
+		var unitVector = Math.sqrt(vectorx+vectory);
+		if(unitVector <= this.range)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+			
+
 	}
 	isFiring()
 	{
@@ -151,8 +190,10 @@ class Stalker {
 			index = 0;
 		}
 		this.id = index;
-		this.ENEMY_SPEED = -104; // pixel displacement per iteration of gameloop
-		this.ANIMATION_SPEED = 28; //in fps
+		this.speed =1.5;
+		this.ENEMY_SPEED = -104 *this.speed; // pixel displacement per iteration of gameloop
+		this.ANIMATION_SPEED = 28 *this.speed; //in fps
+		
 		this.targetable = true;
 		//this.sprite = game.add.sprite(800,lane, 'stalker'); 
 		//enemyLayer.add(this.sprite); 
@@ -208,7 +249,7 @@ class Level
 		this.scoreTracker;
 
 		this.spawnTracker = 0;
-		this.enemyCount  = 999;
+		this.enemyCount  = 50;
 		this.enemySpeed  = -14;
 		this.animationSpeed = 28; 
 		this.enemies = new Array(this.enemyCount);
@@ -243,7 +284,7 @@ class Level
 	start()
 	{
 		//delay, repeatCount, callback, callbackContext, arguments
-		game.time.events.repeat(500, this.enemyCount, this.spawnEnemy, this);
+		game.time.events.repeat(400, this.enemyCount, this.spawnEnemy, this);
 	}
 	getRandomLaneNumber()
 	{
@@ -289,7 +330,8 @@ const GAME_HEIGHT = 500;
 const SOUND_ON = true; // Global SoudControl
 const SOUND_OFF = false;
 var sound = SOUND_ON;
-var music;
+var menuStateMusic;
+var playStateMusic;
 var clickSound;
 var musicPlaying = true;
 var sparkSound;
@@ -336,11 +378,11 @@ function Button(id, img, toogle, w, h, xcord, ycord, action) {
 		switch (action) {
 			case 'b1':
 				clickSound.play();
-				toogleMusic();
+				menuStateMusic.stop();
 				break;
 			case 'swap-state':
 				clickSound.play();
-				toogleMusic()
+				menuStateMusic.stop();
 				swapState();
 				break;
 			default:
@@ -358,7 +400,7 @@ menuButtons.push(hs);
 
 function init() {
 	console.log("Initializing...");
-	game = new Phaser.Game(GAME_WIDTH, GAME_HEIGHT, Phaser.CANVAS, "1a2a3a"); //TODO: set AUTO
+	game = new Phaser.Game(GAME_WIDTH, GAME_HEIGHT, Phaser.AUTO, "1a2a3a");
 	game.state.add('menu', menu);
 	game.state.add('play', play);
 	game.state.start('menu');
@@ -371,7 +413,7 @@ function init() {
 
 menu = {
 	init: function () {
-		console.log("menu initialised");
+		
 	},
 	preload: function () {
 
@@ -385,11 +427,14 @@ menu = {
 		//Audio
 		game.load.audio('menuMusic', 'assets/audio/protoss_lobby.mp3');
 		game.load.audio('menuClick', 'assets/audio/click.wav');
-
+    
 	},
 
 	create: function () {
-
+		forceLoad = game.add.text(-30, -10, "fd");
+		forceLoad.font = 'Upheaval';
+		forceLoad.stroke = '#000000'; //aquamarine
+		forceLoad.fill = '#40E0D0'; //turquise
 		game.stage.backgroundColor = '#6d94b5';
 		menuStateBackground = game.add.sprite(0, 0, 'bg');
 		menuStateBackground.width = game.width;
@@ -400,13 +445,14 @@ menu = {
 
 		// Adding Audio
 		clickSound = game.add.audio('menuClick', 0.9, false);
-		music = game.add.audio('menuMusic', 0.9, true);
-		music.loop = true;
+		menuStateMusic = game.add.audio('menuMusic', 0.9, true);
+		menuStateMusic.loop = true;
 		
 
 		//Toogle by setting SOUND_ON to false at the top of this file
 		if (SOUND_ON) {
-			music.play();
+			menuStateMusic
+			.play();
 		}
 
 		musicPlaying = true;
@@ -439,7 +485,7 @@ play = {
 
 		game.load.audio('shot', 'assets/audio/sfx/shot.wav');
 		//game.load.audio('shot', 'assets/audio/sfx/suction.wav');
-		game.load.audio('em', 'assets/audio/giblitech.mp3');
+		game.load.audio('play-state-music', 'assets/audio/giblitech.mp3');
 
 		//game.load.image("bg-battle", "assets/images/bg_800x576.png");
 		game.load.image("fg", "assets/images/background-fg.png");
@@ -469,17 +515,14 @@ play = {
 	{
 		bindHotKeys(); // binds 1,2,3 and a
 	
-		music = game.add.audio('em', 0.9, true); //TODO: add Music management object
-		music.loop = true;
+		playStateMusic = game.add.audio('play-state-music', 0.9, true); 
+		playStateMusic.loop = true;
 		
 		
 		sparkSound = game.add.audio('espark', 0.9, false);
 		sparkSound.allowMultiple = true;
-
-
-		if (SOUND_ON) {
-			music.play();
-		}
+        playStateMusic.play();
+		
 
 	   
 		game.add.sprite(0, 0, 'bg');
@@ -521,10 +564,24 @@ play = {
 		uiLayer = game.add.group();
 		uiLayer.create(0, 0, 'ui');
 		
+		
 		//scoreboard
 		text = game.add.text(665, 400, "Score");
 		text.anchor.setTo(0.5);
 		//text.font = 'Zelda';
+		/*Actual loading
+It’s important to remember that declaring a font family via CSS does not load the font! 
+The font is loaded only when the browser detects for the first time that it’s going to be used.
+This can cause a visual glitch: either the text is rendered with a default font and then changes 
+to the Web Font (this is known as FOUT or Flash Of Unstyled Text); or the text isn’t rendered at 
+all and remains invisible until the font becomes available. In websites this is usually not a big deal, 
+but in games (Canvas/WebGL) we don’t get the automatic browser re-rendering when the font is available! 
+So if we try to render the text and the font is not available, it is a big deal.
+https://hacks.mozilla.org/2016/06/webfont-preloading-for-html5-games/
+https://hacks.mozilla.org/2016/06/webfont-preloading-for-html5-games/
+
+*/
+     
 		text.font = 'Upheaval';
 		text.fontSize = 34;
 		text.stroke = '#000000'; //aquamarine
@@ -544,31 +601,27 @@ play = {
 		scoreText.alpha = 0.6;
 		scoreText.strokeThickness = 2;
 		scoreText.setShadow(5, 5, 'rgba(0,0,0,0.5)', 5);
-
-		soundButton = game.add.button(760,15, 'toggleSound', function(){console.log("Sound clicked")}, this, 0, 0, 0);
+        //new Button (game, x, y, key, callback, callbackContext, overFrame, outFrame, downFrame, upFrame)
+		soundButton = game.add.button(760,15, 'toggleSound', function(){console.log("Sound clicked")}, this, 0, 0, 1,0);
 		soundButton.scale.setTo(0.5);
-		soundButton.animations.add('soundOn',[1,0],10);
-		soundButton.animations.add('soundOff',[0,1],10);
+		soundButton.animations.add('soundOn',[1,0],1);
+		soundButton.animations.add('soundOff',[0,1],1);
 
 		soundButton.onInputOver.add(function(){console.log("Sound Over")}, this);
 		soundButton.onInputOut.add(function(){console.log("Sound Out")}, this);
-		soundButton.onInputUp.add(function(){
-			console.log("Sound Up")
-			//soundButton.animations.play('toggle', 10, false);
-			//soundButton.loadTexture('toggleSoundInactive');
+		soundButton.onInputDown.add(function(){
+			console.log("Sound Down")
 			if(sound)
 			{
-				soundButton.animations.play('soundOff');
 				sound = SOUND_OFF;
+				playStateMusic.stop();
 			}
 			else
 			{
-				soundButton.animations.play('soundOn');
 				sound = SOUND_ON;
+				playStateMusic.play();
 			}
 		
-		
-		toogleMusic();
 		}, this);
 
 
@@ -591,9 +644,11 @@ play = {
 			{
 				if(lvl.enemies[i] != undefined )//defiend enemies
 				{
-					if (  lvl.enemies[i].isTargetable() && isSpriteClicked(new Mouse() , lvl.enemies[i] ) )
+					
+					if (  lvl.enemies[i].isTargetable() && cannonContainer[activeCannon].ableToFire() && cannonContainer[activeCannon].targetInRange(lvl.enemies[i]) && isSpriteClicked(new Mouse() , lvl.enemies[i] ) ) 
 					{
 						cannonContainer[activeCannon].bullet.setTarget(lvl.enemies[i]);
+						cannonContainer[activeCannon].setFiredTimeStamp();
 						lvl.enemies[i].setTargetable(false);
 						isAPressed = false;
 					}
@@ -615,23 +670,8 @@ play = {
 	}
 };
 
-function toogleMusic() {
-	console.log("toogling");
-	if (!musicPlaying) {
-		music.play();
-		console.log("Play Music");
-		musicPlaying = true;
-	}
-	else if (musicPlaying) {
-		music.stop();
-		//game.cache.removeSound('menuMusic');
-		console.log("stop Music");
-		musicPlaying = false;
-	}
-	else {
-		console.log("error");
-	}
-}
+
+
 function swapState(newState) {
 	console.log("swaping state...");
 	game.state.start('play');
