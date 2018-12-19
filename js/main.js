@@ -1,51 +1,4 @@
 
-class Mouse
-{
-	//http://phaser.io/docs/2.4.2/Phaser.Pointer.html
-	constructor()
-	{
-		this.pointer = game.input.mousePointer; 
-		
-	}	
-
-	
-	
-}
-function changeCursor(context,cursorType)
-{
-   //cursor types url() or crosshair ,or pointer default
-   
-	context.canvas.style.cursor = "crosshair";
-
- 
-  
-}
-
-
-
-
-
-
-function bindHotKeys() {
-	keyOne = game.input.keyboard.addKey(Phaser.Keyboard.ONE);
-	keyOne.onDown.add(function () { activeCannon = 0 }, this);
-
-	keyTwo = game.input.keyboard.addKey(Phaser.Keyboard.TWO);
-	keyTwo.onDown.add(function () { activeCannon = 1 }, this);
-
-	keyThree = game.input.keyboard.addKey(Phaser.Keyboard.THREE);
-	keyThree.onDown.add(function () { activeCannon = 2 }, this);
-
-	attackModeKey = game.input.keyboard.addKey(Phaser.Keyboard.A);
-	attackModeKey.onDown.add(function () { 
-		isAPressed = true; 
-		cursorState= "crosshair";
-
-		
-		
-	}, this);
-}
-
 var game;
 var cursorState;
 var fgCloudGroup;
@@ -224,4 +177,34 @@ function resetCloud2(cloud)
 	console.log("reset"+ cloud.x);
 	cloud.body.velocity.x = game.rnd.realInRange(5,20); 
 	cloud.angle = game.rnd.realInRange(-180,180);
+}
+
+
+
+function changeCursor(context,cursorType)
+{
+   //cursor types url() or crosshair ,or pointer default
+   
+	context.canvas.style.cursor = "crosshair";
+  
+}
+
+function bindHotKeys() {
+	keyOne = game.input.keyboard.addKey(Phaser.Keyboard.ONE);
+	keyOne.onDown.add(function () { activeCannon = 0 }, this);
+
+	keyTwo = game.input.keyboard.addKey(Phaser.Keyboard.TWO);
+	keyTwo.onDown.add(function () { activeCannon = 1 }, this);
+
+	keyThree = game.input.keyboard.addKey(Phaser.Keyboard.THREE);
+	keyThree.onDown.add(function () { activeCannon = 2 }, this);
+
+	attackModeKey = game.input.keyboard.addKey(Phaser.Keyboard.A);
+	attackModeKey.onDown.add(function () { 
+		isAPressed = true; 
+		cursorState= "crosshair";
+
+		
+		
+	}, this);
 }
