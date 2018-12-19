@@ -1,0 +1,28 @@
+{"frames": [
+
+{
+	"filename": "sound-active.png",
+	"frame": {"x":1,"y":1,"w":512,"h":512},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":512},
+	"sourceSize": {"w":512,"h":512}
+},
+{
+	"filename": "sound-inactive.png",
+	"frame": {"x":515,"y":1,"w":512,"h":512},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":512},
+	"sourceSize": {"w":512,"h":512}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "assets.png",
+	"format": "RGBA8888",
+	"size": {"w":1028,"h":514},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:32f667a450996d50d8a8b54189b7b234:d57c3a3358827972fb8aab8837d63ec6:a759b6bbc8381ac9c472b28f589ad0d6$"
+}
+}
