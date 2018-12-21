@@ -1,4 +1,3 @@
-
 menu = {
 	init: function () {
 		

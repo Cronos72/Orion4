@@ -1,10 +1,22 @@
+/*
+The Phaser api (..app/phaser.min.js) is a frame work that acts as a html5 game engine. Essential it is a finite state machine (FSM)
+in which the states are handled by the state manager of the games instance ( new phaser.Game(params) ). Each state has a set of functions, init; preload; create; update
+which get exucted once every iteration of the games mainloop. the logic for each state is contained in it's own 
+file located in "..app/js/states" . Addtionally this game takes advantage of ECMA6 class syntax. Most on screen objects have their own class like cannon or bullet which are located 
+in "..app/js/class/" . Those object aggregate an instance of phasers sprite class which handles most of the essentials. Any additional attributes or required functionality 
+can be found in the objects respective class.
 
-var game;
-var cursorState;
+*/
+var game; // Will hold instance of phaser API's game class 
+
+const GAME_WIDTH = 800;  // Parameter passed to constructor of new phaser.Game()
+const GAME_HEIGHT = 500; //Parameter passed to constructor of new phaser.Game()
+
+const TARGET_ELEMENT = "1a2a3a"; // Parameter passed to constructor of phaser.Game() - it tells phaser which html element to inject a canvas element for rendering the game into
+
+var cursorState; // String containing the cursor state i. "crosshar". Full list at https://www.tutorialspoint.com/css/css_cursors.htm
+
 var fgCloudGroup;
-const GAME_WIDTH = 800;
-const GAME_HEIGHT = 500;
-
 const SOUND_ON = true; // Global SoudControl
 const SOUND_OFF = false;
 var sound = SOUND_OFF;
@@ -44,6 +56,8 @@ var scoreTracker = 0;
 //TODO: Revise to modern class syntax
 function Button(id, img, w, h, xcord, ycord, action) {
 	this.identifier = id;
+
+	
 	this.imagePath = img;
 	
 	this.width = w;
@@ -79,7 +93,7 @@ menuButtons.push(h2p);
 
 function init() {
 	console.log("Initializing...");
-	game = new Phaser.Game(GAME_WIDTH, GAME_HEIGHT, Phaser.AUTO, "1a2a3a");
+	game = new Phaser.Game(GAME_WIDTH, GAME_HEIGHT, Phaser.CANVAS, TARGET_ELEMENT);
 	game.state.add('menu', menu);
 	game.state.add('play', play);
 	game.state.start('menu');
